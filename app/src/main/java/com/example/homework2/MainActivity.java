@@ -13,7 +13,10 @@ public class MainActivity extends AppCompatActivity implements ButtonsFragment.O
     ListFragment listFragment;
     Button list;
     MyAsyncTask myAsyncTask;
-    public final static String LIST="list";
+    public final static String LIST = "list";
+    public final static String TIME = "time";
+    public final static String COUNT = "count";
+    public final static String SWITCH = "switch";
     //Declare the lap list and counter
     static String times = "";
     int count = 1;
@@ -23,17 +26,34 @@ public class MainActivity extends AppCompatActivity implements ButtonsFragment.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //Create fragment references
-        buttonsFragment = (ButtonsFragment) getSupportFragmentManager().findFragmentById(R.id.buttonsFrag);
-        listFragment = (ListFragment) getSupportFragmentManager().findFragmentById(R.id.listFrag);
         //initialize button
         list = (Button) findViewById(R.id.listButton);
+        if (list != null) {
+            list.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    openListActivity();
+                }
+            });
+        }
+        //Initialize fragments
+        buttonsFragment = (ButtonsFragment) getSupportFragmentManager().findFragmentById(R.id.buttonsFrag);
+        listFragment = (ListFragment) getSupportFragmentManager().findFragmentById(R.id.listFrag);
         //initialize AsyncTask class
         myAsyncTask= new MyAsyncTask();
-
+        if (savedInstanceState != null) {
+            times = savedInstanceState.getString(LIST);
+            ButtonsFragment.setTimer(savedInstanceState.getString(TIME));
+            ListFragment.setList();
+            count = savedInstanceState.getInt(COUNT);
+            if (savedInstanceState.getString(SWITCH).equals("Stop ")) {
+                myAsyncTask.execute(360000);
+                ButtonsFragment.setStop();
+            }
+        }
     }
 
-    private void openListActivity(View view) {
+    private void openListActivity() {
         //change to ListActivity
         Intent intent = new Intent(this, ListActivity.class);
         intent.putExtra(LIST, times);
@@ -50,6 +70,10 @@ public class MainActivity extends AppCompatActivity implements ButtonsFragment.O
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putString(TIME, ButtonsFragment.getTime());
+        outState.putString(LIST, times);
+        outState.putInt(COUNT, count);
+        outState.putString(SWITCH, ButtonsFragment.getStart());
     }
 
     @Override
@@ -77,8 +101,13 @@ public class MainActivity extends AppCompatActivity implements ButtonsFragment.O
 
     private void changeState() {
         ButtonsFragment.startStop();
-
-        myAsyncTask.execute(360000);
+        if(myAsyncTask.getStatus()!= AsyncTask.Status.RUNNING) {
+            myAsyncTask = new MyAsyncTask();
+            myAsyncTask.execute(360000);
+        }
+        else {
+            myAsyncTask.cancel(true);
+        }
     }
 
     private void addTime() {
@@ -89,10 +118,25 @@ public class MainActivity extends AppCompatActivity implements ButtonsFragment.O
     private void reset() {
         times = "";
         count = 1;
+        seconds = 0;
         ButtonsFragment.setStart();
         ListFragment.setList();
-        //Stop the timer
+        myAsyncTask.cancel(true);
         ButtonsFragment.resetTimer();
+    }
+
+    public static String formatSeconds(int seconds){
+        int hours = seconds/3600;
+        int minutes = seconds/60%60;
+        int remaining = seconds%60;
+        String format = "";
+        if (hours < 10){ format += "0"; }
+        format += hours + ":";
+        if (minutes < 10){ format += "0"; }
+        format += minutes + ":" ;
+        if (remaining < 10){ format += "0"; }
+        format += remaining;
+        return format;
     }
 
     private static class MyAsyncTask extends AsyncTask<Integer, Integer, Void> {
@@ -129,7 +173,8 @@ public class MainActivity extends AppCompatActivity implements ButtonsFragment.O
         @Override
         protected void onProgressUpdate(Integer... values) {
             super.onProgressUpdate(values);
-
+            //Display timer
+            ButtonsFragment.setTimer(formatSeconds(seconds));
         }
     }
 }

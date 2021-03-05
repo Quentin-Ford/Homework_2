@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,7 +26,7 @@ public class ListFragment extends Fragment {
 
         //Initialize the list
         list = (TextView) view.findViewById(R.id.list);
-
+        list.setMovementMethod(new ScrollingMovementMethod());
 
         return view;
     }

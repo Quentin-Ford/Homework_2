@@ -84,7 +84,7 @@ public class ButtonsFragment extends Fragment implements View.OnClickListener {
 
     public static void startStop() {
         if (start.getText().equals("Start")) {
-            start.setText("Stop");
+            start.setText("Stop ");
         }
         else {
             start.setText("Start");
@@ -93,7 +93,13 @@ public class ButtonsFragment extends Fragment implements View.OnClickListener {
 
     public static void resetTimer() { timer.setText("00:00:00"); }
 
+    public static void setTimer(String time) { timer.setText(time); }
+
     public static void setStart() { start.setText("Start"); }
+
+    public static void setStop() { start.setText("Stop "); }
+
+    public static String getStart() { return (String) start.getText(); }
 
     public interface OnFragmentInteractionListener{
         void onButtonClicked(int infoID);
